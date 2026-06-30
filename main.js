@@ -1,10 +1,13 @@
-const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, screen } = require('electron');
 const path = require('path');
 
 const helperPath = path.join(__dirname, 'p4_grandcross_helper_v42_tabs.html');
 
 let win;
 let opacity = 0.9;
+const MIN_OPACITY = 0.35;
+const MAX_OPACITY = 1;
+const RESIZE_STEP = 40;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -61,9 +64,60 @@ function createWindow() {
       }
 
       header button,
+      header input,
       .links a,
       button {
         -webkit-app-region: no-drag;
+      }
+
+      #vibrateBtn,
+      #wakeBtn {
+        display: none !important;
+      }
+
+      .head-actions {
+        gap: 5px !important;
+      }
+
+      .overlay-controls {
+        -webkit-app-region: no-drag;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .overlay-control-btn {
+        min-width: 26px;
+        min-height: 24px;
+        border: 1.5px solid #111;
+        border-radius: 7px;
+        background: rgba(255,255,255,.92);
+        color: #000;
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 1000;
+        cursor: pointer;
+      }
+
+      .overlay-control-btn:active {
+        filter: brightness(.92);
+      }
+
+      .overlay-close-btn {
+        background: #ffd8d8;
+      }
+
+      .overlay-opacity-label {
+        font-size: 11px;
+        font-weight: 1000;
+        color: #111;
+        white-space: nowrap;
+      }
+
+      .overlay-opacity-slider {
+        width: 70px;
+        accent-color: #5f8fe4;
+        cursor: pointer;
       }
 
       .links,
@@ -91,8 +145,17 @@ function sendShortcut(action) {
 }
 
 function setOverlayOpacity(nextOpacity) {
-  opacity = Math.min(1, Math.max(0.35, Number(nextOpacity.toFixed(2))));
+  opacity = Math.min(MAX_OPACITY, Math.max(MIN_OPACITY, Number(nextOpacity.toFixed(2))));
   if (win && !win.isDestroyed()) win.setOpacity(opacity);
+}
+
+function resizeOverlay(direction) {
+  if (!win || win.isDestroyed()) return;
+  const bounds = win.getBounds();
+  const displayBounds = screen.getDisplayMatching(bounds).workArea;
+  const nextWidth = Math.min(displayBounds.width, Math.max(300, bounds.width + RESIZE_STEP * direction));
+  const nextHeight = Math.min(displayBounds.height, Math.max(420, bounds.height + RESIZE_STEP * direction));
+  win.setBounds({ width: nextWidth, height: nextHeight });
 }
 
 function registerShortcuts() {
@@ -120,4 +183,12 @@ app.on('will-quit', () => {
 
 ipcMain.on('overlay-close', () => {
   app.quit();
+});
+
+ipcMain.on('overlay-opacity', (_event, nextOpacity) => {
+  setOverlayOpacity(Number(nextOpacity));
+});
+
+ipcMain.on('overlay-resize', (_event, direction) => {
+  resizeOverlay(Number(direction) < 0 ? -1 : 1);
 });
