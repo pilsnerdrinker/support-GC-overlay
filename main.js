@@ -8,11 +8,9 @@ let opacity = 0.9;
 const MIN_OPACITY = 0.35;
 const MAX_OPACITY = 1;
 const RESIZE_STEP = 40;
-const BASE_WIDTH = 380;
-const BASE_HEIGHT = 700;
 const MIN_ZOOM = 0.45;
 const MAX_ZOOM = 1.25;
-let resizeDrag = null;
+let contentSize = { width: 410, height: 740 };
 
 function createWindow() {
   win = new BrowserWindow({
@@ -164,31 +162,6 @@ function createWindow() {
         cursor: pointer;
       }
 
-      .overlay-resize-grip {
-        -webkit-app-region: no-drag;
-        position: fixed;
-        right: 5px;
-        bottom: 5px;
-        width: 26px;
-        height: 26px;
-        border: 1.5px solid rgba(17,17,17,.85);
-        border-radius: 7px;
-        background: rgba(255,255,255,.78);
-        color: #111;
-        display: grid;
-        place-items: center;
-        font-size: 16px;
-        font-weight: 1000;
-        line-height: 1;
-        cursor: nwse-resize;
-        z-index: 1000;
-        user-select: none;
-      }
-
-      .overlay-resize-grip:active {
-        filter: brightness(.92);
-      }
-
       .links,
       details {
         display: none !important;
@@ -199,6 +172,191 @@ function createWindow() {
       .result-card,
       .summary {
         box-shadow: 0 4px 12px rgba(0,0,0,.18) !important;
+      }
+
+      .block,
+      .input-block,
+      .result-card,
+      .summary,
+      details {
+        background: rgba(255,255,255,.06) !important;
+      }
+
+      .input-block,
+      .result-card {
+        padding: 7px !important;
+      }
+
+      .sheet,
+      .input-panel,
+      .result-panel {
+        gap: 7px !important;
+      }
+
+      .bottom-tabbar {
+        margin-top: 4px !important;
+      }
+
+      .input-block h2,
+      .result-card h2,
+      .field-title,
+      .gc-tab,
+      .choice-btn,
+      .memo-choice,
+      .memo-label,
+      .result-label,
+      .result-action,
+      .result-round h3,
+      .magic-memo h3,
+      .memo-truth-box {
+        text-shadow:
+          -1px -1px 0 rgba(255,255,255,.92),
+           1px -1px 0 rgba(255,255,255,.92),
+          -1px  1px 0 rgba(255,255,255,.92),
+           1px  1px 0 rgba(255,255,255,.92),
+           0 1px 2px rgba(255,255,255,.95) !important;
+      }
+
+      .input-block h2 {
+        font-size: 19px !important;
+        margin-bottom: 6px !important;
+      }
+
+      .h2-note {
+        font-size: 13px !important;
+      }
+
+      .field-title {
+        font-size: 13px !important;
+        margin: 6px 0 3px !important;
+      }
+
+      .choice-btn {
+        min-height: 39px !important;
+        font-size: 20px !important;
+        padding: 1px 3px !important;
+        line-height: 1 !important;
+      }
+
+      .gc-tab {
+        min-height: 31px !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
+        padding: 1px 3px !important;
+        background: rgba(255,255,255,.16) !important;
+      }
+
+      .gc-tab.active {
+        background: rgba(191,239,255,.82) !important;
+      }
+
+      .choice-btn,
+      .memo-choice,
+      .memo-label,
+      .memo-truth-box,
+      .result-label,
+      .result-action {
+        background: rgba(255,255,255,.13) !important;
+      }
+
+      .choice-btn.active,
+      .choice-btn.true.active,
+      .truth.true.selected,
+      .memo-choice.active.true {
+        background: rgba(191,239,255,.82) !important;
+      }
+
+      .choice-btn.false.active,
+      .truth.false.selected {
+        background: rgba(255,216,216,.82) !important;
+      }
+
+      .memo-choice.active.false,
+      .action.charge-step {
+        background: rgba(255,227,181,.82) !important;
+      }
+
+      .icon-choice .icon,
+      .icon-choice .icon img {
+        width: 37px !important;
+        height: 37px !important;
+      }
+
+      .icon-choice .icon {
+        flex-basis: 37px !important;
+      }
+
+      .result-label {
+        font-size: 18px !important;
+        line-height: 1 !important;
+      }
+
+      .result-action {
+        font-size: 20px !important;
+        line-height: 1 !important;
+      }
+
+      .result-label .icon,
+      .result-label .icon img {
+        width: 35px !important;
+        height: 35px !important;
+      }
+
+      .result-label .icon {
+        flex-basis: 35px !important;
+      }
+
+      .memo-label {
+        font-size: 15px !important;
+        line-height: 1 !important;
+      }
+
+      .memo-label .icon,
+      .memo-label .icon img {
+        width: 32px !important;
+        height: 32px !important;
+      }
+
+      .memo-label .icon {
+        flex-basis: 32px !important;
+      }
+
+      .memo-choice,
+      .memo-truth-box {
+        font-size: 19px !important;
+        line-height: 1 !important;
+        padding: 1px 3px !important;
+      }
+
+      .result-round h3,
+      .magic-memo h3 {
+        background: rgba(0,0,0,.78) !important;
+        color: #fff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,.8) !important;
+      }
+
+      .action.stack,
+      .action.spread {
+        background: rgba(247,224,187,.82) !important;
+      }
+
+      .action.leave,
+      .action.accel-stop {
+        background: rgba(255,209,209,.82) !important;
+      }
+
+      .action.stay,
+      .action.accel-move,
+      .action.charge-safe {
+        background: rgba(191,239,255,.82) !important;
+      }
+
+      .action.gaze {
+        background: rgba(247,183,199,.82) !important;
+      }
+
+      .action.missing {
+        background: rgba(221,221,221,.7) !important;
       }
 
       .toast {
@@ -212,8 +370,8 @@ function createWindow() {
 function updateZoomForBounds() {
   if (!win || win.isDestroyed()) return;
   const bounds = win.getBounds();
-  const widthZoom = bounds.width / BASE_WIDTH;
-  const heightZoom = bounds.height / BASE_HEIGHT;
+  const widthZoom = bounds.width / contentSize.width;
+  const heightZoom = bounds.height / contentSize.height;
   const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.min(widthZoom, heightZoom)));
   win.webContents.setZoomFactor(Number(zoom.toFixed(3)));
 }
@@ -236,32 +394,6 @@ function resizeOverlay(direction) {
   const nextHeight = Math.min(displayBounds.height, Math.max(360, bounds.height + RESIZE_STEP * direction));
   win.setBounds({ width: nextWidth, height: nextHeight });
   updateZoomForBounds();
-}
-
-function startResizeDrag() {
-  if (!win || win.isDestroyed()) return;
-  const startPoint = screen.getCursorScreenPoint();
-  const startBounds = win.getBounds();
-  const displayBounds = screen.getDisplayMatching(startBounds).workArea;
-
-  stopResizeDrag();
-  resizeDrag = setInterval(() => {
-    if (!win || win.isDestroyed()) {
-      stopResizeDrag();
-      return;
-    }
-    const point = screen.getCursorScreenPoint();
-    const nextWidth = Math.min(displayBounds.width, Math.max(260, startBounds.width + point.x - startPoint.x));
-    const nextHeight = Math.min(displayBounds.height, Math.max(360, startBounds.height + point.y - startPoint.y));
-    win.setBounds({ width: nextWidth, height: nextHeight });
-    updateZoomForBounds();
-  }, 16);
-}
-
-function stopResizeDrag() {
-  if (!resizeDrag) return;
-  clearInterval(resizeDrag);
-  resizeDrag = null;
 }
 
 function registerShortcuts() {
@@ -299,10 +431,14 @@ ipcMain.on('overlay-resize', (_event, direction) => {
   resizeOverlay(Number(direction) < 0 ? -1 : 1);
 });
 
-ipcMain.on('overlay-resize-drag-start', () => {
-  startResizeDrag();
-});
-
-ipcMain.on('overlay-resize-drag-stop', () => {
-  stopResizeDrag();
+ipcMain.on('overlay-content-size', (_event, size) => {
+  if (!size || typeof size !== 'object') return;
+  const width = Number(size.width);
+  const height = Number(size.height);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return;
+  contentSize = {
+    width: Math.max(1, Math.ceil(width)),
+    height: Math.max(1, Math.ceil(height))
+  };
+  updateZoomForBounds();
 });
