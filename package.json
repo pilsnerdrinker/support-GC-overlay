@@ -1,0 +1,41 @@
+{
+  "name": "p4-grandcross-overlay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop overlay wrapper for the P4 Grand Cross helper.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "portable": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "jp.pilsnerdrinker.p4-grandcross-overlay",
+    "productName": "P4グランドクロス補助オーバーレイ",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "p4_grandcross_helper_v42_tabs.html",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "P4-grandcross-overlay-portable.exe"
+    }
+  }
+}
