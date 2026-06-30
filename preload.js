@@ -51,30 +51,45 @@ function addOverlayControls() {
   });
 }
 
-function addResizeGrip() {
-  if (document.querySelector('.overlay-resize-grip')) return;
+function reportContentSize() {
+  const app = document.querySelector('.app');
+  if (!app) return;
 
-  const grip = document.createElement('div');
-  grip.className = 'overlay-resize-grip';
-  grip.title = 'ドラッグでサイズ変更';
-  grip.textContent = '↘';
-  document.body.appendChild(grip);
+  const bodyStyle = window.getComputedStyle(document.body);
+  const paddingX = parseFloat(bodyStyle.paddingLeft) + parseFloat(bodyStyle.paddingRight);
+  const paddingY = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
 
-  const stopDrag = () => ipcRenderer.send('overlay-resize-drag-stop');
-
-  grip.addEventListener('mousedown', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    ipcRenderer.send('overlay-resize-drag-start');
+  ipcRenderer.send('overlay-content-size', {
+    width: app.scrollWidth + paddingX,
+    height: app.scrollHeight + paddingY
   });
+}
 
-  window.addEventListener('mouseup', stopDrag);
-  window.addEventListener('blur', stopDrag);
+function observeContentSize() {
+  const app = document.querySelector('.app');
+  if (!app) return;
+
+  const scheduleReport = () => {
+    window.requestAnimationFrame(reportContentSize);
+  };
+
+  scheduleReport();
+
+  const observer = new ResizeObserver(scheduleReport);
+  observer.observe(app);
+  observer.observe(document.body);
+
+  const sheet = document.getElementById('sheet');
+  if (sheet) observer.observe(sheet);
+
+  document.addEventListener('click', () => {
+    window.setTimeout(reportContentSize, 0);
+  }, true);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   addOverlayControls();
-  addResizeGrip();
+  observeContentSize();
 
   ipcRenderer.on('overlay-shortcut', (_event, action) => {
     if (!action || typeof action !== 'object') return;
@@ -97,7 +112,5 @@ window.addEventListener('DOMContentLoaded', () => {
 contextBridge.exposeInMainWorld('grandcrossOverlay', {
   close: () => ipcRenderer.send('overlay-close'),
   resize: (direction) => ipcRenderer.send('overlay-resize', direction),
-  startResizeDrag: () => ipcRenderer.send('overlay-resize-drag-start'),
-  stopResizeDrag: () => ipcRenderer.send('overlay-resize-drag-stop'),
   setOpacity: (value) => ipcRenderer.send('overlay-opacity', value)
 });
