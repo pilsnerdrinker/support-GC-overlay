@@ -5,6 +5,120 @@ function clickSelector(selector) {
   if (el instanceof HTMLElement) el.click();
 }
 
+let padSelected = null;
+let previousInputTab = 'gc1';
+
+function getActiveTab() {
+  const active = document.querySelector('.tabbar .gc-tab.active');
+  return active?.dataset?.tab || 'gc1';
+}
+
+function clickTab(tab) {
+  if (['gc1', 'gc2'].includes(getActiveTab())) previousInputTab = getActiveTab();
+  clickSelector(`[data-act="setTab"][data-tab="${tab}"]`);
+  window.setTimeout(() => {
+    clearPadSelection();
+    ensurePadSelection();
+    reportContentSize();
+  }, 0);
+}
+
+function switchTab(delta) {
+  const tabs = ['gc1', 'gc2', 'result'];
+  const active = getActiveTab();
+  const index = Math.max(0, tabs.indexOf(active));
+  const next = tabs[(index + delta + tabs.length) % tabs.length];
+  clickTab(next);
+}
+
+function toggleResultTab() {
+  const active = getActiveTab();
+  if (active === 'result') {
+    clickTab(previousInputTab || 'gc1');
+    return;
+  }
+  if (['gc1', 'gc2'].includes(active)) previousInputTab = active;
+  clickTab('result');
+}
+
+function getPadButtons() {
+  const panel = document.querySelector('#sheet > .input-panel, #sheet > .result-panel');
+  if (!panel) return [];
+  return [...panel.querySelectorAll('button')]
+    .filter(button => !button.disabled && button.offsetParent !== null);
+}
+
+function clearPadSelection() {
+  if (padSelected) padSelected.classList.remove('pad-selected');
+  padSelected = null;
+}
+
+function setPadSelection(button) {
+  if (!button) return;
+  clearPadSelection();
+  padSelected = button;
+  padSelected.classList.add('pad-selected');
+}
+
+function ensurePadSelection() {
+  const buttons = getPadButtons();
+  if (!buttons.length) {
+    clearPadSelection();
+    return null;
+  }
+  if (!padSelected || !buttons.includes(padSelected)) {
+    setPadSelection(buttons[0]);
+  }
+  return padSelected;
+}
+
+function centerOf(button) {
+  const rect = button.getBoundingClientRect();
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+    rect
+  };
+}
+
+function movePadSelection(direction) {
+  const current = ensurePadSelection();
+  if (!current) return;
+
+  const buttons = getPadButtons();
+  const origin = centerOf(current);
+  const candidates = buttons
+    .filter(button => button !== current)
+    .map(button => ({ button, center: centerOf(button) }))
+    .filter(({ center }) => {
+      if (direction === 'up') return center.y < origin.y - 4;
+      if (direction === 'down') return center.y > origin.y + 4;
+      if (direction === 'left') return center.x < origin.x - 4;
+      if (direction === 'right') return center.x > origin.x + 4;
+      return false;
+    })
+    .sort((a, b) => {
+      const ax = Math.abs(a.center.x - origin.x);
+      const ay = Math.abs(a.center.y - origin.y);
+      const bx = Math.abs(b.center.x - origin.x);
+      const by = Math.abs(b.center.y - origin.y);
+      if (direction === 'up' || direction === 'down') return ay * 1000 + ax - (by * 1000 + bx);
+      return ax * 1000 + ay - (bx * 1000 + by);
+    });
+
+  if (candidates[0]) setPadSelection(candidates[0].button);
+}
+
+function activatePadSelection() {
+  const current = ensurePadSelection();
+  if (!current) return;
+  current.click();
+  window.setTimeout(() => {
+    ensurePadSelection();
+    reportContentSize();
+  }, 0);
+}
+
 function addOverlayControls() {
   const headActions = document.querySelector('.head-actions');
   if (!headActions || document.querySelector('.overlay-controls')) return;
@@ -95,12 +209,37 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!action || typeof action !== 'object') return;
 
     if (action.type === 'tab' && ['gc1', 'gc2', 'result'].includes(action.tab)) {
-      clickSelector(`[data-act="setTab"][data-tab="${action.tab}"]`);
+      clickTab(action.tab);
+      return;
+    }
+
+    if (action.type === 'tabDelta') {
+      switchTab(Number(action.delta) < 0 ? -1 : 1);
+      return;
+    }
+
+    if (action.type === 'toggleResult') {
+      toggleResultTab();
+      return;
+    }
+
+    if (action.type === 'move' && ['up', 'down', 'left', 'right'].includes(action.direction)) {
+      movePadSelection(action.direction);
+      return;
+    }
+
+    if (action.type === 'activate') {
+      activatePadSelection();
       return;
     }
 
     if (action.type === 'reset') {
       clickSelector('#resetBtn');
+      window.setTimeout(() => {
+        clearPadSelection();
+        ensurePadSelection();
+        reportContentSize();
+      }, 0);
     }
   });
 
