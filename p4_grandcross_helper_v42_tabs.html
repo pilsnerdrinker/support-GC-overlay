@@ -697,6 +697,11 @@
     return truth === '真' ? {txt:'中央待機', cls:'stay'} : {txt:'離れる', cls:'leave'};
   }
   function magicAction(truth){ return truth === '真' ? {txt:'踏まない', cls:'charge-safe'} : {txt:'踏む', cls:'charge-step'}; }
+  function truthResultClass(truth){
+    if(truth === '真') return 'truth-true';
+    if(truth === '偽') return 'truth-false';
+    return '';
+  }
   function iconHtml(row){ return `<span class="icon"><img src="${ICONS[row.icon]}" alt="" aria-hidden="true"></span>`; }
 
   function render(){
@@ -861,7 +866,7 @@
       }
       if((gcKey === 'gc1' && timing === 'early') || (gcKey === 'gc2' && timing === 'late')){
         const action = gc.exTruth ? gazeAction(gc.exTruth) : null;
-        gazeLines.push(renderActionLine('視線', action ? action.txt : 'エクスデス真偽を入力', action ? action.cls : 'missing', 'gaze'));
+        gazeLines.push(renderActionLine('視線', action ? action.txt : 'エクスデス真偽を入力', action ? `${action.cls} ${truthResultClass(gc.exTruth)}` : 'missing', 'gaze'));
       }
     }
     if(!waterLightningLines.length){
@@ -881,7 +886,7 @@
     const label = `${showTiming ? `${timingLabel(gc.wlTiming)} ` : ''}${debuffLabel(gc.debuffKind)}`;
     if(!gc.exTruth) return renderActionLine(label, 'エクスデス真偽を入力', 'missing', gc.debuffKind);
     const action = wlAction(gc.debuffKind, gc.exTruth);
-    return renderActionLine(label, action.txt, action.cls, gc.debuffKind);
+    return renderActionLine(label, action.txt, `${action.cls} ${truthResultClass(gc.exTruth)}`, gc.debuffKind);
   }
 
   function renderAccelResult(gcKey, showTiming = true){
@@ -891,7 +896,7 @@
     const label = `${showTiming ? `${timingLabel(timing)} ` : ''}加速度`;
     if(!gc.exTruth) return renderActionLine(label, 'エクスデス真偽を入力', 'missing', 'accel');
     const action = accelAction(gc.exTruth);
-    return renderActionLine(label, action.txt, action.cls, 'accel');
+    return renderActionLine(label, action.txt, `${action.cls} ${truthResultClass(gc.exTruth)}`, 'accel');
   }
 
   function renderChaosLinesForTiming(timing){
@@ -907,7 +912,7 @@
         continue;
       }
       const action = chaosAction(element, gc.chaosTruth);
-      lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, action.txt, action.cls, element));
+      lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, action.txt, `${action.cls} ${truthResultClass(gc.chaosTruth)}`, element));
     }
     return lines;
   }
