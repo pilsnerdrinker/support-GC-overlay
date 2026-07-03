@@ -111,10 +111,23 @@ function createWindow() {
         filter: brightness(.92);
       }
 
-      #resetBtn,
       #vibrateBtn,
       #wakeBtn {
         display: none !important;
+      }
+
+      #resetBtn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 47px !important;
+        min-height: 22px !important;
+        padding: 0 5px !important;
+        border-width: 1.5px !important;
+        border-radius: 7px !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+        background: rgba(255,255,255,.86) !important;
       }
 
       .head-actions {
@@ -250,6 +263,17 @@ function createWindow() {
         background: rgba(191,239,255,.82) !important;
       }
 
+      .pad-selected {
+        outline: 4px solid #ffe100 !important;
+        outline-offset: -5px !important;
+        box-shadow:
+          0 0 0 2px rgba(0,0,0,.95),
+          0 0 12px 4px rgba(255,225,0,.75),
+          inset 0 0 0 3px rgba(255,225,0,.4) !important;
+        position: relative !important;
+        z-index: 2 !important;
+      }
+
       .choice-btn,
       .memo-choice,
       .memo-label,
@@ -355,6 +379,14 @@ function createWindow() {
         background: rgba(247,183,199,.82) !important;
       }
 
+      .result-action.truth-true {
+        background: rgba(191,239,255,.86) !important;
+      }
+
+      .result-action.truth-false {
+        background: rgba(255,88,88,.86) !important;
+      }
+
       .action.missing {
         background: rgba(221,221,221,.7) !important;
       }
@@ -404,6 +436,16 @@ function registerShortcuts() {
   globalShortcut.register('CommandOrControl+Alt+Up', () => setOverlayOpacity(opacity + 0.08));
   globalShortcut.register('CommandOrControl+Alt+Down', () => setOverlayOpacity(opacity - 0.08));
   globalShortcut.register('CommandOrControl+Alt+Q', () => app.quit());
+
+  globalShortcut.register('CommandOrControl+Alt+Shift+1', () => sendShortcut({ type: 'tabDelta', delta: 1 }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+2', () => sendShortcut({ type: 'tabDelta', delta: -1 }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+3', () => sendShortcut({ type: 'move', direction: 'up' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+4', () => sendShortcut({ type: 'move', direction: 'down' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+5', () => sendShortcut({ type: 'move', direction: 'left' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+6', () => sendShortcut({ type: 'move', direction: 'right' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+7', () => sendShortcut({ type: 'activate' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+8', () => sendShortcut({ type: 'toggleResult' }));
+  globalShortcut.register('CommandOrControl+Alt+Shift+9', () => sendShortcut({ type: 'reset' }));
 }
 
 app.whenReady().then(() => {
