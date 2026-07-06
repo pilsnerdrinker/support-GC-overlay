@@ -7,6 +7,7 @@ function clickSelector(selector) {
 
 let padSelected = null;
 let previousInputTab = 'gc1';
+const PAD_KEY_FIELDS = ['act', 'gc', 'field', 'truth', 'kind', 'timing', 'element', 'memo'];
 
 function getActiveTab() {
   const active = document.querySelector('.tabbar .gc-tab.active');
@@ -58,6 +59,26 @@ function setPadSelection(button) {
   clearPadSelection();
   padSelected = button;
   padSelected.classList.add('pad-selected');
+}
+
+function padButtonKey(button) {
+  if (!button) return '';
+  return PAD_KEY_FIELDS
+    .map(field => `${field}:${button.dataset?.[field] || ''}`)
+    .join('|');
+}
+
+function restorePadSelection(key) {
+  if (!key) {
+    ensurePadSelection();
+    return;
+  }
+  const match = getPadButtons().find(button => padButtonKey(button) === key);
+  if (match) {
+    setPadSelection(match);
+    return;
+  }
+  ensurePadSelection();
 }
 
 function ensurePadSelection() {
@@ -112,9 +133,10 @@ function movePadSelection(direction) {
 function activatePadSelection() {
   const current = ensurePadSelection();
   if (!current) return;
+  const key = padButtonKey(current);
   current.click();
   window.setTimeout(() => {
-    ensurePadSelection();
+    restorePadSelection(key);
     reportContentSize();
   }, 0);
 }
