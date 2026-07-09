@@ -2,9 +2,10 @@
 
 FF14のP4グランドクロス用カンペを、デスクトップ上に半透明の小さい画面として表示するElectron版です。
 
-This is an Electron desktop overlay for the P4 Grand Cross cheat sheet in FF14. It displays a small semi-transparent window on your desktop.
 
 FF14を仮想フルスクリーンまたはボーダーレスで起動し、その上に常時最前面で重ねて使う想定です。ウィンドウはフォーカスを取りにくい設定にしているため、クリックしても基本的にFF14側をアクティブにしたまま操作できます。
+
+This is an Electron desktop overlay for the P4 Grand Cross cheat sheet in FF14. It displays a small semi-transparent window on your desktop.
 
 It is intended to be used with FF14 running in borderless/windowed fullscreen mode. The overlay stays always on top and is configured to avoid taking focus, so clicking it should usually keep FF14 active.
 
