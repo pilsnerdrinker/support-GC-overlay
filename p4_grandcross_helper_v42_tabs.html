@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GCカンペ</title>
-  <meta name="description" content="絶妖星乱舞 P4 グランドクロスの1回目/2回目の真偽・デバフ・カオスを入力して、結果タブで行動を確認する補助表です。" />
+  <title>P4グランドクロスカンペ</title>
+  <meta name="description" content="絶妖星乱舞 P4 グランドクロスの1回目/2回目の真偽・デバフ・カオスを入力して、結果タブで行動を確認するカンペです。" />
   <style>
     :root{
       --bg:#f2f2f2;
@@ -37,7 +37,6 @@
     .sheet{display:grid;gap:12px;}
     .block{background:#fff;border:0;box-shadow:var(--shadow);padding:0;}
     .tabbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
-    .bottom-tabbar{margin-top:6px;}
     .input-panel,.result-panel{display:grid;gap:8px;}
     .input-block,.result-card{padding:8px;border:2px solid #111;box-shadow:var(--shadow);}
     .input-block h2,.result-card h2{margin:0 0 7px;font-size:16px;line-height:1.15;font-weight:1000;}
@@ -49,7 +48,7 @@
     .choice-grid.three{grid-template-columns:1fr 1fr 1fr;}
     .choice-grid.debuff{grid-template-columns:1fr 1fr 1fr 1fr;}
     .chaos-element-grid{margin-top:6px;}
-    .second-chaos-spacer{height:46px;visibility:hidden;}
+    .chaos-element-spacer{height:46px;}
     .choice-btn{min-height:40px;border:2px solid #111;background:#fff;color:#000;font-weight:1000;font-size:15px;line-height:1.1;cursor:pointer;}
     .choice-btn.active{background:#dff1ff;box-shadow:inset 0 0 0 3px rgba(95,143,228,.35);}
     .choice-btn.true.active{background:#bfefff;}
@@ -130,6 +129,8 @@
     .action.gaze{background:var(--pink)}
     .action.accel-stop{background:var(--redpale)}
     .action.accel-move{background:var(--green)}
+    .action.truth-true{background:#bfefff;}
+    .action.truth-false{background:#ffd8d8;}
     .mini .head{min-height:34px;font-size:18px;}
     .grid[data-round] .cell{min-height:54px;}
     .mini .cell{min-height:49px;}
@@ -522,6 +523,10 @@
       background:#dff1ff;
       box-shadow:inset 0 0 0 2px rgba(95,143,228,.40);
     }
+    .mini-tool.lang-active{
+      background:#dff1ff;
+      box-shadow:inset 0 0 0 2px rgba(95,143,228,.35);
+    }
     @media (max-width:520px){
       header{
         gap:4px;
@@ -561,26 +566,29 @@
 <body>
   <div class="app">
     <header>
-      <h1>GCカンペ</h1>
+      <h1 id="appTitle">P4グランドクロスカンペ</h1>
       <div class="head-actions">
         <button class="toolbtn mini-tool" id="resetBtn" type="button">リセット</button>
         <button class="toolbtn mini-tool" id="vibrateBtn" type="button" data-act="setVibration">振動OFF</button>
+        <button class="toolbtn mini-tool lang-tool" id="langBtn" type="button" data-act="setLang">JP / EN</button>
         <button class="toolbtn mini-tool" id="wakeBtn" type="button">画面ON</button>
       </div>
     </header>
     <div class="links">
-      <a href="https://github.com/pilsnerdrinker/practice-grandcross-helper#readme" target="_blank" rel="noopener">README</a>
-      <a href="https://pilsnerdrinker.github.io/raidshelf/" target="_blank" rel="noopener">他の練習ページ：raidshelf</a>
+      <a id="readmeLink" href="https://github.com/pilsnerdrinker/practice-grandcross-helper#readme" target="_blank" rel="noopener">README</a>
+      <a id="otherPracticeLink" href="https://pilsnerdrinker.github.io/raidshelf/" target="_blank" rel="noopener">他の練習ページ：raidshelf</a>
     </div>
 
     <main class="sheet" id="sheet"></main>
 
     <details>
-      <summary>セル操作</summary>
-      <div>1回目GC：1回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽、ほのお/みずを入力。</div>
-      <div>2回目GC：2回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽を入力。ほのお/みずは1回目から自動。</div>
-      <div>視線と加速のみは、GC回ごとの法則から加速弾の早遅を自動表示。</div>
-      <div>結果：入力内容から、1回目処理/2回目処理でどう動くかを表示。</div>
+      <summary id="helpSummary">セル操作</summary>
+      <div id="helpText">
+        <div>1回目GC：1回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽、ほのお/みずを入力。</div>
+        <div>2回目GC：2回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽を入力。ほのお/みずは1回目から自動。</div>
+        <div>視線と加速のみは、GC回ごとの法則から加速弾の早遅を自動表示。</div>
+        <div>結果：入力内容から、1回目処理/2回目処理でどう動くかを表示。</div>
+      </div>
     </details>
   </div>
 
@@ -588,7 +596,9 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = 'p4-grandcross-helper-v42-tabs';
+  const STORAGE_KEY = 'p4-grandcross-helper-v47-tabs';
+  const LEGACY_STORAGE_KEYS = ['p4-grandcross-helper-v46-tabs', 'p4-grandcross-helper-v42-tabs'];
+  const LANG_STORAGE_KEY = 'p4-grandcross-helper-lang';
   const ICONS = {
     water:'data:image/png;base64,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',
     thunder:'data:image/png;base64,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',
@@ -601,9 +611,77 @@
     magicIce:'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2228%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23ff5a00%22%20stroke-width%3D%222.8%22%2F%3E%3Cpath%20d%3D%22M32%204%20A28%2028%200%200%201%2060%2032%20L32%2032%20Z%22%20fill%3D%22%23ff5a00%22%2F%3E%3Cpath%20d%3D%22M32%2060%20A28%2028%200%200%201%204%2032%20L32%2032%20Z%22%20fill%3D%22%23ff5a00%22%2F%3E%3Cline%20x1%3D%2232%22%20y1%3D%224%22%20x2%3D%2232%22%20y2%3D%2260%22%20stroke%3D%22%23ff5a00%22%20stroke-width%3D%222%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2232%22%20x2%3D%2260%22%20y2%3D%2232%22%20stroke%3D%22%23ff5a00%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E'
   };
 
+  const I18N = {
+    ja:{
+      title:'P4グランドクロスカンペ',
+      desc:'絶妖星乱舞 P4 グランドクロスの1回目/2回目の真偽・デバフ・カオスを入力して、結果タブで行動を確認するカンペです。',
+      reset:'リセット', vibrationOn:'振動ON', vibrationOff:'振動OFF', wakeOn:'画面ON', wakeOnActive:'画面ON中',
+      langSwitch:'JP / EN', readme:'README', otherPractice:'他の練習ページ：raidshelf',
+      helpSummary:'セル操作',
+      help1:'1回目GC：1回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽、ほのお/みずを入力。',
+      help2:'2回目GC：2回目のエクスデス真偽、デバフ、水雷の早遅、カオス真偽を入力。ほのお/みずは1回目から自動。',
+      help3:'視線と加速のみは、GC回ごとの法則から加速弾の早遅を自動表示。',
+      help4:'結果：入力内容から、1回目処理/2回目処理でどう動くかを表示。',
+      tabAria:'表示切替', tabAriaBottom:'表示切替（下）', gc1Tab:'1回目GC', gc2Tab:'2回目GC', resultTab:'結果',
+      gc1:'1回目GC', gc2:'2回目GC', exTruth:'エクスデス真偽', debuff:'デバフ', wlTimingTitle:'水雷の早遅', chaos:'カオス',
+      trueText:'真', fakeText:'偽', water:'水', thunder:'雷', gaze:'視線', accelOnly:'加速のみ', early:'早', late:'遅', fire:'ほのお', wave:'みず',
+      none:'なし', missing:'未入力', waterLightning:'水雷', gazeAccelGroup:'視線/加速', acceleration:'加速度',
+      processEarly:'1回目処理（早デバフ）', processLate:'2回目処理（遅デバフ）',
+      stack:'頭割り', gather:'集合', spread:'散開', lookAway:'見ない（外）', lookIn:'見る（内）', stop:'止まる', move:'動く', moveOut:'離れる', stayMiddle:'中央待機', dontStep:'踏まない', step:'踏む',
+      setExTruth:'エクスデス真偽を入力', setEarlyLate:'早遅を入力', setChaosTruth:'カオス真偽を入力', incomplete:'未入力', debuffRule:'デバフ法則', bothSide:'1回目/2回目が両方{side}側',
+      round1:'1回目', round2:'2回目', magicMemo:'マジックチャージメモ', magicTruthAria:'マジックチャージ真偽', magicFirst:'1回目', magicSecond:'2回目', thunderParen:'（雷）', iceParen:'（氷）',
+      toastReset:'リセットしました', vibrationUnsupported:'このブラウザは振動非対応かも', wakeUnsupported:'このブラウザは非対応です', wakeOnToast:'画面ONにしました', wakeOffToast:'画面ONを解除しました', wakeFail:'画面ONにできません'
+    },
+    en:{
+      title:'P4 Grand Cross Cheat Sheet',
+      desc:'Cheat sheet for P4 Grand Cross: enter Exdeath True/Fake, debuffs, Chaos, and Magic Charge, then check the Result tab.',
+      reset:'Reset', vibrationOn:'Vibration ON', vibrationOff:'Vibration OFF', wakeOn:'Screen ON', wakeOnActive:'Screen ON',
+      langSwitch:'JP / EN', readme:'README', otherPractice:'Other practice pages: raidshelf',
+      helpSummary:'How to use',
+      help1:'GC1: Enter Exdeath True/Fake, debuff, Water/Thunder timing, Chaos True/Fake, and Fire/Water.',
+      help2:'GC2: Enter Exdeath True/Fake, debuff, Water/Thunder timing, and Chaos True/Fake. Fire/Water is automatic from GC1.',
+      help3:'Gaze and Accel only timing is determined automatically from GC rules.',
+      help4:'Result: Shows what to do for the 1st/2nd resolution.',
+      tabAria:'Tab switch', tabAriaBottom:'Tab switch bottom', gc1Tab:'GC1', gc2Tab:'GC2', resultTab:'Result',
+      gc1:'GC1', gc2:'GC2', exTruth:'Exdeath True/Fake', debuff:'Debuff', wlTimingTitle:'Water/Thunder timing', chaos:'Chaos',
+      trueText:'True', fakeText:'Fake', water:'Water', thunder:'Thunder', gaze:'Gaze', accelOnly:'Accel only', early:'Early', late:'Late', fire:'Fire', wave:'Water',
+      none:'None', missing:'Missing', waterLightning:'Water/Thunder', gazeAccelGroup:'Gaze/Accel', acceleration:'Acceleration',
+      processEarly:'1st resolution (Early debuff)', processLate:'2nd resolution (Late debuff)',
+      stack:'Stack', gather:'Stack', spread:'Spread', lookAway:'Look away (out)', lookIn:'Look in', stop:'Stop', move:'Move', moveOut:'Move out', stayMiddle:'Stay middle', dontStep:'Don\'t step', step:'Step',
+      setExTruth:'Set Exdeath True/Fake', setEarlyLate:'Set Early/Late', setChaosTruth:'Set Chaos True/Fake', incomplete:'Missing', debuffRule:'Debuff rule', bothSide:'GC1/GC2 are both {side} side',
+      round1:'1st', round2:'2nd', magicMemo:'Magic Charge memo', magicTruthAria:'Magic Charge True/Fake', magicFirst:'1st', magicSecond:'2nd', thunderParen:'(Thunder)', iceParen:'(Ice)',
+      toastReset:'Reset', vibrationUnsupported:'Vibration may not be supported in this browser', wakeUnsupported:'Screen wake lock is not supported in this browser', wakeOnToast:'Screen ON enabled', wakeOffToast:'Screen ON released', wakeFail:'Could not keep the screen on'
+    }
+  };
+
+  function normalizeLang(value){
+    const v = String(value || '').toLowerCase();
+    return v === 'en' ? 'en' : v === 'ja' || v === 'jp' ? 'ja' : null;
+  }
+  function queryLang(){
+    try{ return normalizeLang(new URLSearchParams(window.location.search).get('lang')); }catch(e){ return null; }
+  }
+  function storedLang(){
+    try{ return normalizeLang(localStorage.getItem(LANG_STORAGE_KEY)); }catch(e){ return null; }
+  }
+  function initialLang(fallback = 'ja'){
+    return queryLang() || storedLang() || normalizeLang(fallback) || 'ja';
+  }
+  function currentLang(){
+    return normalizeLang(state && state.lang) || 'ja';
+  }
+  function t(key){
+    const lang = currentLang();
+    return (I18N[lang] && I18N[lang][key]) || I18N.ja[key] || key;
+  }
+  function fmt(key, vars = {}){
+    return t(key).replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? '');
+  }
+
   const blankGc = () => ({ exTruth:null, debuffKind:null, wlTiming:null, chaosTruth:null });
   const blankState = () => ({
     activeTab:'gc1',
+    lang:initialLang(),
     gc1:{...blankGc(), chaosElement:null},
     gc2:{...blankGc()},
     vibrationEnabled:false,
@@ -614,40 +692,42 @@
   const sheet = document.getElementById('sheet');
 
   const tabDefs = [
-    {key:'gc1', label:'1回目GC'},
-    {key:'gc2', label:'2回目GC'},
-    {key:'result', label:'結果'}
+    {key:'gc1', labelKey:'gc1Tab'},
+    {key:'gc2', labelKey:'gc2Tab'},
+    {key:'result', labelKey:'resultTab'}
   ];
   const waterLightningTypes = [
-    {key:'water', label:'水', icon:'water'},
-    {key:'thunder', label:'雷', icon:'thunder'}
+    {key:'water', labelKey:'water', icon:'water'},
+    {key:'thunder', labelKey:'thunder', icon:'thunder'}
   ];
   const debuffChoices = [
-    {key:'water', label:'水', icon:'water'},
-    {key:'thunder', label:'雷', icon:'thunder'},
-    {key:'gaze', label:'視線', icon:'gaze'},
-    {key:'accel', label:'加速のみ', icon:'accel'}
+    {key:'water', labelKey:'water', icon:'water'},
+    {key:'thunder', labelKey:'thunder', icon:'thunder'},
+    {key:'gaze', labelKey:'gaze', icon:'gaze'},
+    {key:'accel', labelKey:'accelOnly', icon:'accel'}
   ];
   const timingDefs = [
-    {key:'early', label:'早'},
-    {key:'late', label:'遅'}
+    {key:'early', labelKey:'early'},
+    {key:'late', labelKey:'late'}
   ];
   const chaosElements = [
-    {key:'fire', label:'ほのお', icon:'fire'},
-    {key:'wave', label:'みず', icon:'wave'}
+    {key:'fire', labelKey:'fire', icon:'fire'},
+    {key:'wave', labelKey:'wave', icon:'wave'}
   ];
 
   function load(){
     try{
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
       if(!raw) return blankState();
       const parsed = JSON.parse(raw);
       const base = blankState();
       const activeTab = ['gc1', 'gc2', 'result'].includes(parsed.activeTab) ? parsed.activeTab : 'gc1';
+      const lang = queryLang() || normalizeLang(parsed.lang) || storedLang() || base.lang;
       return {
         ...base,
         ...parsed,
         activeTab,
+        lang,
         vibrationEnabled:parsed.vibrationEnabled === true,
         magicMemo:migrateMagicMemo(base.magicMemo, parsed.magicMemo||{}),
         gc1:migrateGc(base.gc1, parsed.gc1||{}),
@@ -683,36 +763,67 @@
     delete merged.accelTiming;
     return merged;
   }
-  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try{ localStorage.setItem(LANG_STORAGE_KEY, currentLang()); }catch(e){}
+  }
   function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   function wlAction(rowKey, truth){
-    if(rowKey === 'water') return truth === '真' ? {txt:'頭割り', cls:'stack'} : {txt:'散開', cls:'spread'};
-    return truth === '真' ? {txt:'散開', cls:'spread'} : {txt:'頭割り', cls:'stack'};
+    if(rowKey === 'water') return truth === '真' ? {txt:t('stack'), cls:'stack'} : {txt:t('spread'), cls:'spread'};
+    return truth === '真' ? {txt:t('spread'), cls:'spread'} : {txt:t('stack'), cls:'stack'};
   }
-  function gazeAction(truth){ return truth === '真' ? {txt:'見ない（外）', cls:'gaze'} : {txt:'見る（内）', cls:'gaze'}; }
-  function accelAction(truth){ return truth === '真' ? {txt:'止まる', cls:'accel-stop'} : {txt:'動く', cls:'accel-move'}; }
+  function gazeAction(truth){ return truth === '真' ? {txt:t('lookAway'), cls:'gaze'} : {txt:t('lookIn'), cls:'gaze'}; }
+  function accelAction(truth){ return truth === '真' ? {txt:t('stop'), cls:'accel-stop'} : {txt:t('move'), cls:'accel-move'}; }
   function chaosAction(rowKey, truth){
-    if(rowKey === 'fire') return truth === '真' ? {txt:'離れる', cls:'leave'} : {txt:'中央待機', cls:'stay'};
-    return truth === '真' ? {txt:'中央待機', cls:'stay'} : {txt:'離れる', cls:'leave'};
+    if(rowKey === 'fire') return truth === '真' ? {txt:t('moveOut'), cls:'leave'} : {txt:t('stayMiddle'), cls:'stay'};
+    return truth === '真' ? {txt:t('stayMiddle'), cls:'stay'} : {txt:t('moveOut'), cls:'leave'};
   }
-  function magicAction(truth){ return truth === '真' ? {txt:'踏まない', cls:'charge-safe'} : {txt:'踏む', cls:'charge-step'}; }
-  function truthResultClass(truth){
-    if(truth === '真') return 'truth-true';
-    if(truth === '偽') return 'truth-false';
-    return '';
-  }
+  function magicAction(truth){ return truth === '真' ? {txt:t('dontStep'), cls:'charge-safe'} : {txt:t('step'), cls:'charge-step'}; }
+  function resultTruthClass(truth){ return truth === '真' ? 'truth-true' : truth === '偽' ? 'truth-false' : ''; }
   function iconHtml(row){ return `<span class="icon"><img src="${ICONS[row.icon]}" alt="" aria-hidden="true"></span>`; }
 
   function render(){
-    sheet.innerHTML = renderTabs() + renderActivePanel() + renderTabs('bottom');
+    updateStaticLabels();
+    sheet.innerHTML = renderTabs('top') + renderActivePanel() + renderTabs('bottom');
     save();
+    updateVibrateButton();
+    updateWakeButton();
+  }
+
+  function updateStaticLabels(){
+    const lang = currentLang();
+    document.documentElement.lang = lang;
+    document.title = t('title');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if(metaDesc) metaDesc.setAttribute('content', t('desc'));
+    const appTitle = document.getElementById('appTitle');
+    if(appTitle) appTitle.textContent = t('title');
+    const resetBtn = document.getElementById('resetBtn');
+    if(resetBtn) resetBtn.textContent = t('reset');
+    const langBtn = document.getElementById('langBtn');
+    if(langBtn){
+      langBtn.textContent = t('langSwitch');
+      langBtn.classList.toggle('lang-active', lang === 'en');
+      langBtn.setAttribute('aria-label', lang === 'en' ? 'Switch language to Japanese' : '言語を英語に切り替え');
+    }
+    const readmeLink = document.getElementById('readmeLink');
+    if(readmeLink) readmeLink.textContent = t('readme');
+    const otherPracticeLink = document.getElementById('otherPracticeLink');
+    if(otherPracticeLink) otherPracticeLink.textContent = t('otherPractice');
+    const helpSummary = document.getElementById('helpSummary');
+    if(helpSummary) helpSummary.textContent = t('helpSummary');
+    const helpText = document.getElementById('helpText');
+    if(helpText){
+      helpText.innerHTML = [t('help1'), t('help2'), t('help3'), t('help4')].map(line => `<div>${esc(line)}</div>`).join('');
+    }
   }
 
   function renderTabs(position = 'top'){
-    const cls = position === 'bottom' ? 'tabbar bottom-tabbar' : 'tabbar';
-    return `<nav class="${cls}" aria-label="表示切替">
-      ${tabDefs.map(tab => `<button class="gc-tab ${state.activeTab === tab.key ? 'active' : ''}" type="button" data-act="setTab" data-tab="${tab.key}">${tab.label}</button>`).join('')}
+    const label = position === 'bottom' ? t('tabAriaBottom') : t('tabAria');
+    const cls = position === 'bottom' ? 'tabbar bottom-tabbar tabbar-bottom' : 'tabbar tabbar-top';
+    return `<nav class="${cls}" aria-label="${esc(label)}">
+      ${tabDefs.map(tab => `<button class="gc-tab ${state.activeTab === tab.key ? 'active' : ''}" type="button" data-act="setTab" data-tab="${tab.key}">${esc(t(tab.labelKey))}</button>`).join('')}
     </nav>`;
   }
 
@@ -727,7 +838,7 @@
     const isFirst = gcKey === 'gc1';
     return `<section class="input-panel">
       <section class="block input-block">
-        <h2>${isFirst ? '1回目GC' : '2回目GC'}<span class="h2-note">エクスデス真偽</span></h2>
+        <h2>${isFirst ? t('gc1') : t('gc2')}<span class="h2-note">${t('exTruth')}</span></h2>
         <div class="choice-grid two">
           ${renderTruthChoice(gcKey, 'exTruth', '真')}
           ${renderTruthChoice(gcKey, 'exTruth', '偽')}
@@ -735,19 +846,19 @@
       </section>
 
       <section class="block input-block">
-        <h2>デバフ</h2>
+        <h2>${t('debuff')}</h2>
         <div class="choice-grid debuff">
           ${debuffChoices.map(row => renderDebuffKindChoice(gcKey, row)).join('')}
         </div>
-        <div class="field-title">水雷の早遅</div>
+        <div class="field-title">${t('wlTimingTitle')}</div>
         <div class="choice-grid two">
-          ${timingDefs.map(t => `<button class="choice-btn ${gc.wlTiming === t.key ? 'active' : ''}" type="button" data-act="setWlTiming" data-gc="${gcKey}" data-timing="${t.key}" ${isWaterLightningKind(gc.debuffKind) ? '' : 'disabled'}>${t.label}</button>`).join('')}
+          ${timingDefs.map(timing => `<button class="choice-btn ${gc.wlTiming === timing.key ? 'active' : ''}" type="button" data-act="setWlTiming" data-gc="${gcKey}" data-timing="${timing.key}" ${isWaterLightningKind(gc.debuffKind) ? '' : 'disabled'}>${t(timing.labelKey)}</button>`).join('')}
         </div>
         ${renderAutoTimingNote(gcKey)}
       </section>
 
       <section class="block input-block">
-        <h2>カオス</h2>
+        <h2>${t('chaos')}</h2>
         <div class="choice-grid two">
           ${renderTruthChoice(gcKey, 'chaosTruth', '真')}
           ${renderTruthChoice(gcKey, 'chaosTruth', '偽')}
@@ -757,9 +868,10 @@
     </section>`;
   }
 
+  function truthText(truth){ return truth === '真' ? t('trueText') : t('fakeText'); }
   function truthLabelHtml(truth){
     const cls = truth === "真" ? "true" : "false";
-    return `<span class="truth-wrap"><span class="truth-mark ${cls}" aria-hidden="true"></span><span>${truth}</span><span class="truth-mark ${cls}" aria-hidden="true"></span></span>`;
+    return `<span class="truth-wrap"><span class="truth-mark ${cls}" aria-hidden="true"></span><span>${esc(truthText(truth))}</span><span class="truth-mark ${cls}" aria-hidden="true"></span></span>`;
   }
 
   function renderTruthChoice(gcKey, field, truth){
@@ -770,7 +882,7 @@
 
   function renderDebuffKindChoice(gcKey, row){
     const selected = state[gcKey].debuffKind === row.key ? ' active' : '';
-    return `<button class="choice-btn icon-choice${selected}" type="button" data-act="setDebuffKind" data-gc="${gcKey}" data-kind="${row.key}">${iconHtml(row)}<span>${row.label}</span></button>`;
+    return `<button class="choice-btn icon-choice${selected}" type="button" data-act="setDebuffKind" data-gc="${gcKey}" data-kind="${row.key}">${iconHtml(row)}<span>${esc(t(row.labelKey))}</span></button>`;
   }
 
   function renderAutoTimingNote(gcKey){
@@ -779,12 +891,12 @@
 
   function renderFirstChaosElement(){
     return `<div class="choice-grid two chaos-element-grid">
-        ${chaosElements.map(row => `<button class="choice-btn icon-choice ${state.gc1.chaosElement === row.key ? 'active' : ''}" type="button" data-act="setChaosElement" data-element="${row.key}">${iconHtml(row)}<span>${row.label}</span></button>`).join('')}
+        ${chaosElements.map(row => `<button class="choice-btn icon-choice ${state.gc1.chaosElement === row.key ? 'active' : ''}" type="button" data-act="setChaosElement" data-element="${row.key}">${iconHtml(row)}<span>${esc(t(row.labelKey))}</span></button>`).join('')}
       </div>`;
   }
 
   function renderSecondChaosElement(){
-    return `<div class="second-chaos-spacer" aria-hidden="true"></div>`;
+    return `<div class="chaos-element-spacer" aria-hidden="true"></div>`;
   }
 
   function secondChaosElement(){
@@ -794,16 +906,16 @@
   }
 
   function chaosLabel(element){
-    return element === 'fire' ? 'ほのお' : element === 'wave' ? 'みず' : '未入力';
+    return element === 'fire' ? t('fire') : element === 'wave' ? t('wave') : t('missing');
   }
 
   function timingLabel(timing){
-    return timing === 'early' ? '早' : timing === 'late' ? '遅' : '未入力';
+    return timing === 'early' ? t('early') : timing === 'late' ? t('late') : t('missing');
   }
 
   function debuffLabel(type){
     const row = waterLightningTypes.find(item => item.key === type);
-    return row ? row.label : 'なし';
+    return row ? t(row.labelKey) : t('none');
   }
 
   function isWaterLightningKind(kind){
@@ -811,8 +923,8 @@
   }
 
   function debuffGroup(kind){
-    if(isWaterLightningKind(kind)) return '水雷';
-    if(kind === 'gaze' || kind === 'accel') return '視線/加速';
+    if(isWaterLightningKind(kind)) return t('waterLightning');
+    if(kind === 'gaze' || kind === 'accel') return t('gazeAccelGroup');
     return null;
   }
 
@@ -841,7 +953,7 @@
   }
 
   function renderTimingResult(timing){
-    const title = timing === 'early' ? '1回目処理（早デバフ）' : '2回目処理（遅デバフ）';
+    const title = timing === 'early' ? t('processEarly') : t('processLate');
     const lines = [
       ...renderProcessingLinesForTiming(timing),
       ...renderChaosLinesForTiming(timing)
@@ -866,11 +978,11 @@
       }
       if((gcKey === 'gc1' && timing === 'early') || (gcKey === 'gc2' && timing === 'late')){
         const action = gc.exTruth ? gazeAction(gc.exTruth) : null;
-        gazeLines.push(renderActionLine('視線', action ? action.txt : 'エクスデス真偽を入力', action ? `${action.cls} ${truthResultClass(gc.exTruth)}` : 'missing', 'gaze'));
+        gazeLines.push(renderActionLine(t('gaze'), action ? action.txt : t('setExTruth'), action ? `${action.cls} ${resultTruthClass(gc.exTruth)}` : 'missing', 'gaze'));
       }
     }
     if(!waterLightningLines.length){
-      waterLightningLines.push(renderActionLine('水雷', '集合', 'stack'));
+      waterLightningLines.push(renderActionLine(t('waterLightning'), t('gather'), 'stack'));
     }
     return [
       ...waterLightningLines,
@@ -881,22 +993,22 @@
   }
 
   function renderWaterLightningResult(gc, showTiming = true){
-    if(!isWaterLightningKind(gc.debuffKind)) return renderActionLine('水雷', 'なし', 'missing');
-    if(!gc.wlTiming) return renderActionLine(debuffLabel(gc.debuffKind), '早遅を入力', 'missing', gc.debuffKind);
+    if(!isWaterLightningKind(gc.debuffKind)) return renderActionLine(t('waterLightning'), t('none'), 'missing');
+    if(!gc.wlTiming) return renderActionLine(debuffLabel(gc.debuffKind), t('setEarlyLate'), 'missing', gc.debuffKind);
     const label = `${showTiming ? `${timingLabel(gc.wlTiming)} ` : ''}${debuffLabel(gc.debuffKind)}`;
-    if(!gc.exTruth) return renderActionLine(label, 'エクスデス真偽を入力', 'missing', gc.debuffKind);
+    if(!gc.exTruth) return renderActionLine(label, t('setExTruth'), 'missing', gc.debuffKind);
     const action = wlAction(gc.debuffKind, gc.exTruth);
-    return renderActionLine(label, action.txt, `${action.cls} ${truthResultClass(gc.exTruth)}`, gc.debuffKind);
+    return renderActionLine(label, action.txt, `${action.cls} ${resultTruthClass(gc.exTruth)}`, gc.debuffKind);
   }
 
   function renderAccelResult(gcKey, showTiming = true){
     const gc = state[gcKey];
     const timing = accelTimingFor(gcKey);
-    if(!timing) return renderActionLine('加速度', 'なし', 'missing');
-    const label = `${showTiming ? `${timingLabel(timing)} ` : ''}加速度`;
-    if(!gc.exTruth) return renderActionLine(label, 'エクスデス真偽を入力', 'missing', 'accel');
+    if(!timing) return renderActionLine(t('acceleration'), t('none'), 'missing');
+    const label = `${showTiming ? `${timingLabel(timing)} ` : ''}${t('acceleration')}`;
+    if(!gc.exTruth) return renderActionLine(label, t('setExTruth'), 'missing', 'accel');
     const action = accelAction(gc.exTruth);
-    return renderActionLine(label, action.txt, `${action.cls} ${truthResultClass(gc.exTruth)}`, 'accel');
+    return renderActionLine(label, action.txt, `${action.cls} ${resultTruthClass(gc.exTruth)}`, 'accel');
   }
 
   function renderChaosLinesForTiming(timing){
@@ -906,31 +1018,31 @@
       const gc = state[gcKey];
       const element = isFirst ? state.gc1.chaosElement : secondChaosElement();
       if(!element || chaosTimingFor(element) !== timing) continue;
-      const title = isFirst ? '1回目' : '2回目';
+      const title = isFirst ? t('round1') : t('round2');
       if(!gc.chaosTruth){
-        lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, 'カオス真偽を入力', 'missing', element));
+        lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, t('setChaosTruth'), 'missing', element));
         continue;
       }
       const action = chaosAction(element, gc.chaosTruth);
-      lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, action.txt, `${action.cls} ${truthResultClass(gc.chaosTruth)}`, element));
+      lines.push(renderActionLine(`${title} ${chaosLabel(element)}`, action.txt, `${action.cls} ${resultTruthClass(gc.chaosTruth)}`, element));
     }
     return lines;
   }
 
   function renderMagicMemo(){
     return `<section class="magic-memo">
-      <h3>マジックチャージメモ</h3>
+      <h3>${t('magicMemo')}</h3>
       ${renderMagicTruthGuide()}
       <div class="memo-grid">
         <div class="memo-row">
-          <div class="memo-label">${iconHtml({icon:'magicThunder'})}<span>1回目<br>（雷）</span></div>
+          <div class="memo-label">${iconHtml({icon:'magicThunder'})}<span>${t('magicFirst')}<br>${t('thunderParen')}</span></div>
           <div class="memo-choice-grid">
             ${renderMagicMemoChoice('first', '真')}
             ${renderMagicMemoChoice('first', '偽')}
           </div>
         </div>
         <div class="memo-row">
-          <div class="memo-label">${iconHtml({icon:'magicIce'})}<span>2回目<br>（氷）</span></div>
+          <div class="memo-label">${iconHtml({icon:'magicIce'})}<span>${t('magicSecond')}<br>${t('iceParen')}</span></div>
           <div class="memo-choice-grid">
             ${renderMagicMemoChoice('second', '真')}
             ${renderMagicMemoChoice('second', '偽')}
@@ -941,7 +1053,7 @@
   }
 
   function renderMagicTruthGuide(){
-    return `<div class="memo-truth-row" aria-label="マジックチャージ真偽">
+    return `<div class="memo-truth-row" aria-label="${esc(t('magicTruthAria'))}">
       <div class="memo-truth-spacer" aria-hidden="true"></div>
       <div class="memo-truth-guide">
         <div class="memo-truth-box">${truthLabelHtml('真')}</div>
@@ -961,19 +1073,19 @@
     const lines = [];
     for(const gcKey of ['gc1', 'gc2']){
       const gc = state[gcKey];
-      const prefix = gcKey === 'gc1' ? '1回目' : '2回目';
+      const prefix = gcKey === 'gc1' ? t('round1') : t('round2');
       if(isWaterLightningKind(gc.debuffKind) && !gc.wlTiming){
-        lines.push(renderActionLine(`${prefix} ${debuffLabel(gc.debuffKind)}`, '早遅を入力', 'missing', gc.debuffKind));
+        lines.push(renderActionLine(`${prefix} ${debuffLabel(gc.debuffKind)}`, t('setEarlyLate'), 'missing', gc.debuffKind));
       }
     }
     const group1 = debuffGroup(state.gc1.debuffKind);
     const group2 = debuffGroup(state.gc2.debuffKind);
     if(group1 && group2 && group1 === group2){
-      lines.push(renderActionLine('デバフ法則', `1回目/2回目が両方${group1}側`, 'missing'));
+      lines.push(renderActionLine(t('debuffRule'), fmt('bothSide', {side:group1}), 'missing'));
     }
     if(!lines.length) return '';
     return `<section class="block result-card">
-      <h2>未入力</h2>
+      <h2>${t('incomplete')}</h2>
       ${lines.join('')}
     </section>`;
   }
@@ -1010,8 +1122,13 @@
       updateVibrateButton();
       if(state.vibrationEnabled){
         triggerHaptic(true);
-        if(!('vibrate' in navigator)) toast('このブラウザは振動非対応かも');
+        if(!('vibrate' in navigator)) toast(t('vibrationUnsupported'));
       }
+      return;
+    }
+    if(act === 'setLang'){
+      state.lang = currentLang() === 'en' ? 'ja' : 'en';
+      render();
       return;
     }
     if(act === 'setTab'){
@@ -1058,10 +1175,12 @@
   });
 
   document.getElementById('resetBtn').addEventListener('click', () => {
+    const keepLang = currentLang();
     state = blankState();
+    state.lang = keepLang;
     render();
     updateVibrateButton();
-    toast('リセットしました');
+    toast(t('toastReset'));
   });
 
   function triggerHaptic(force = false){
@@ -1073,7 +1192,7 @@
   const vibrateBtn = document.getElementById('vibrateBtn');
   function updateVibrateButton(){
     if(!vibrateBtn) return;
-    vibrateBtn.textContent = state.vibrationEnabled ? '振動ON' : '振動OFF';
+    vibrateBtn.textContent = state.vibrationEnabled ? t('vibrationOn') : t('vibrationOff');
     vibrateBtn.classList.toggle('vibrate-active', state.vibrationEnabled);
   }
 
@@ -1084,13 +1203,13 @@
 
   function updateWakeButton(){
     if(!wakeBtn) return;
-    wakeBtn.textContent = wakeLock ? '画面ON中' : '画面ON';
+    wakeBtn.textContent = wakeLock ? t('wakeOnActive') : t('wakeOn');
     wakeBtn.classList.toggle('wake-active', !!wakeLock);
   }
 
   async function requestWakeLock(){
     if(!('wakeLock' in navigator)){
-      toast('このブラウザは非対応です');
+      toast(t('wakeUnsupported'));
       wakeWanted = false;
       updateWakeButton();
       return;
@@ -1103,12 +1222,12 @@
         updateWakeButton();
       });
       updateWakeButton();
-      toast('画面ONにしました');
+      toast(t('wakeOnToast'));
     }catch(e){
       wakeLock = null;
       wakeWanted = false;
       updateWakeButton();
-      toast('画面ONにできません');
+      toast(t('wakeFail'));
     }
   }
 
@@ -1119,7 +1238,7 @@
       wakeLock = null;
     }
     updateWakeButton();
-    toast('画面ONを解除しました');
+    toast(t('wakeOffToast'));
   }
 
   if(wakeBtn){
